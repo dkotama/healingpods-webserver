@@ -26,11 +26,13 @@ def remote_ac(is_fan_on, degree):
         print("Turning AC to " + str(degree))
     
 
-def remote_treadmill(is_on): 
-    if (is_on):
-        print("Treadmill turn ON ... ")
-    else:
+def remote_treadmill(treadmill_status): 
+    if (treadmill_status == "" or treadmill_status == "stop") :
         print("Treadmill turn OFF ... ")
+    elif (treadmill_status == "start") :
+        print("Treadmill turn ON ... ")
+    else :
+        print("Unrecognized Trigger , Treadmill turn OFF ... ")
 
 def countdown(t, title=None):
     if (title):
@@ -52,6 +54,7 @@ def countdown(t, title=None):
 def api_phase():
     args = request.args
     phase_num = args.get("num", default=0, type=int)
+    treadmill = args.get("tm", default="", type=str)
 
     if phase_num < 1:
         print("Undefined phase " + str(phase_num))
@@ -61,11 +64,16 @@ def api_phase():
 
     # Gather Apples
     if phase_num == 1:
-        countdown(5, "Starting Treadmill..")
-        remote_treadmill(True) 
-        countdown(10, "Simulating Walking for 10 Secs..")
-        countdown(5, "Stopping Treadmill..")
-        remote_treadmill(False)
+        if (treadmill == "start"):
+            countdown(5, "Starting Treadmill..")
+            remote_treadmill(treadmill) 
+            print("Waiting walking stop ..")
+        elif(treadmill == "stop"):
+            countdown(5, "Stopping Treadmill..")
+            remote_treadmill(treadmill)
+        else:
+            print("Unrecognized Treadmill Commands..")
+
 
         return jsonify(
             success=True,
@@ -86,11 +94,15 @@ def api_phase():
 
     # Walk to gather branches
     elif phase_num == 3:
-        countdown(5, "Starting Treadmill..")
-        remote_treadmill(True) 
-        countdown(10, "Simulating Walking for 10 Secs..")
-        countdown(5, "Stopping Treadmill..")
-        remote_treadmill(False)
+        if (treadmill == "start"):
+            countdown(5, "Starting Treadmill..")
+            remote_treadmill(treadmill) 
+            print("Waiting walking stop ..")
+        elif(treadmill == "stop"):
+            countdown(5, "Stopping Treadmill..")
+            remote_treadmill(treadmill)
+        else:
+            print("Unrecognized Treadmill Commands..")
 
         return jsonify(
             success=True,
@@ -112,11 +124,16 @@ def api_phase():
 
     # Jalan ke Api unggun
     elif phase_num == 5:
-        countdown(5, "Starting Treadmill..")
-        remote_treadmill(True) 
-        countdown(10, "Simulating Walking for 10 Secs..")
-        countdown(5, "Stopping Treadmill..")
-        remote_treadmill(False)
+        if (treadmill == "start"):
+            countdown(5, "Starting Treadmill..")
+            remote_treadmill(treadmill) 
+            print("Waiting walking stop ..")
+        elif(treadmill == "stop"):
+            countdown(5, "Stopping Treadmill..")
+            remote_treadmill(treadmill)
+        else:
+            print("Unrecognized Treadmill Commands..")
+            
         return jsonify(
             success=True,
             phase=5,
