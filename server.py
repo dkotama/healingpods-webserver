@@ -55,6 +55,7 @@ def api_phase():
     args = request.args
     phase_num = args.get("num", default=0, type=int)
     treadmill = args.get("tm", default="", type=str)
+    turn = args.get("turn", default="", type=str)
 
     if phase_num < 1:
         print("Undefined phase " + str(phase_num))
@@ -71,8 +72,13 @@ def api_phase():
         elif(treadmill == "stop"):
             countdown(5, "Stopping Treadmill..")
             remote_treadmill(treadmill)
-        else:
+        elif(treadmill != ""):
             print("Unrecognized Treadmill Commands..")
+
+        if (turn == "left"):
+            print("Turning Left")
+        elif(turn == "right"):
+            print("Turning Right")
 
 
         return jsonify(
@@ -101,7 +107,7 @@ def api_phase():
         elif(treadmill == "stop"):
             countdown(5, "Stopping Treadmill..")
             remote_treadmill(treadmill)
-        else:
+        elif(treadmill != ""):
             print("Unrecognized Treadmill Commands..")
 
         return jsonify(
@@ -131,7 +137,7 @@ def api_phase():
         elif(treadmill == "stop"):
             countdown(5, "Stopping Treadmill..")
             remote_treadmill(treadmill)
-        else:
+        elif(treadmill != ""):
             print("Unrecognized Treadmill Commands..")
             
         return jsonify(
