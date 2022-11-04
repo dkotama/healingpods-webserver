@@ -1,5 +1,5 @@
 import time
-import logging
+import logging 
 from flask import Flask, request, jsonify
 from ph4_walkingpad import pad
 from ph4_walkingpad.pad import WalkingPad, Controller

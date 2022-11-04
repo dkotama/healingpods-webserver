@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block content %}
+  <div class="main-content" onload="update_values()">
+      <div class="col-md">
+          <section class="section">
+              <div class="section-header">
+                  <h1>Dashboard</h1>
+              </div>
+              <div class="section-body">
+                    <h2 class="section-title">Patient List</h2>
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="card-body">
+                                    <table class="table">
+                                        <thead>
+                                        <tr>
+                                            <th scope="col">#</th>
+                                            <th scope="col">Nama</th>
+                                            <th scope="col">Umur</th>
+                                            <th scope="col">Action</th>
+                                        </tr>
+                                        </thead>
+                                        <tbody>
+                                                {% for p in patients %}
+                                                    <tr>
+                                                        <th scope="row">1</th>
+                                                        <td>{{ p['name'] }}</td>
+                                                        <td>{{ p['age'] }}</td>
+                                                        <td>
+                                                            <a href="admin/monitoring?id=2l3k">
+                                                                <button type="button" class="btn btn-primary">Start Session</button>
+                                                            </a>
+                                                        </td>
+                                                    </tr>
+                                                {% endfor %}
+                                        <tr>
+                                        </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                          </div>
+                    </div>
+                    
+              </div>
+          </section>
+      </div>
+  </div>
+{% endblock content %}
