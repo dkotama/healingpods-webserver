@@ -84,6 +84,7 @@ async def api_phase():
     args = request.args
     phase_num = args.get("num", default=0, type=int)
     treadmill = args.get("tm", default="", type=str)
+    turn = args.get("turn", default="", type=str)
 
     if phase_num < 1:
         print("Undefined phase " + str(phase_num))
@@ -98,10 +99,15 @@ async def api_phase():
             await remote_treadmill(treadmill) 
             print("Waiting walking stop ..")
         elif(treadmill == "stop"):
-            # countdown(5, "Stopping Treadmill..")
-            await remote_treadmill(treadmill)
-        else:
+            countdown(5, "Stopping Treadmill..")
+            remote_treadmill(treadmill)
+        elif(treadmill != ""):
             print("Unrecognized Treadmill Commands..")
+
+        if (turn == "left"):
+            print("Turning Left")
+        elif(turn == "right"):
+            print("Turning Right")
 
 
         return jsonify(
@@ -128,9 +134,9 @@ async def api_phase():
             await remote_treadmill(treadmill) 
             print("Waiting walking stop ..")
         elif(treadmill == "stop"):
-            # countdown(5, "Stopping Treadmill..")
-            await remote_treadmill(treadmill)
-        else:
+            countdown(5, "Stopping Treadmill..")
+            remote_treadmill(treadmill)
+        elif(treadmill != ""):
             print("Unrecognized Treadmill Commands..")
 
         return jsonify(
@@ -158,9 +164,9 @@ async def api_phase():
             await remote_treadmill(treadmill) 
             print("Waiting walking stop ..")
         elif(treadmill == "stop"):
-            # countdown(5, "Stopping Treadmill..")
-            await remote_treadmill(treadmill)
-        else:
+            countdown(5, "Stopping Treadmill..")
+            remote_treadmill(treadmill)
+        elif(treadmill != ""):
             print("Unrecognized Treadmill Commands..")
             
         return jsonify(
