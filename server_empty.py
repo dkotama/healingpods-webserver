@@ -118,7 +118,7 @@ async def api_phase():
         
         if (treadmill == "start"):
             # countdown(2, "Starting Treadmill..")
-            await remote_treadmill(treadmill) 
+            # await remote_treadmill(treadmill) 
             print("Waiting walking stop ..")
         elif(treadmill == "stop"):
             countdown(5, "Stopping Treadmill..")
