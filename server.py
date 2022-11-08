@@ -1,6 +1,7 @@
 import time
 import logging
 from flask import Flask, request, jsonify
+from time import strftime
 
 app = Flask(__name__)
 # log = logging.getLogger('werkzeug')
@@ -50,21 +51,33 @@ def countdown(t, title=None):
     else :
         print('Finish')
 
+# Logging
+@app.after_request
+def after_request(response):
+    timestamp = strftime('[%Y-%b-%d %H:%M]')
+    print(timestamp, request.remote_addr, request.method, request.scheme, request.full_path, response.status)
+    return response
+    
+#Routing
 @app.route('/api/phase', methods=['GET'])
 def api_phase():
+    phase_num = ""
     args = request.args
-    phase_num = args.get("num", default=0, type=int)
+    temp_phase_num = args.get("num", default="", type=str)
     treadmill = args.get("tm", default="", type=str)
     turn = args.get("turn", default="", type=str)
-
-    if phase_num < 1:
-        print("Undefined phase " + str(phase_num))
-        return "Undefined phase. Must be higher than 1"
+    
+    if len(temp_phase_num) > 1 :
+        print("Phase not num detected" + str(phase_num))
+        arr_num = list(temp_phase_num)
+        phase_num = arr_num[-1]
+    else :
+        phase_num = temp_phase_num
 
     print("... Initiating Phase " + str(phase_num))
 
     # Gather Apples
-    if phase_num == 1:
+    if phase_num == "1":
         if (treadmill == "start"):
             countdown(5, "Starting Treadmill..")
             remote_treadmill(treadmill) 
@@ -89,7 +102,7 @@ def api_phase():
             )
 
     # Apple Falls
-    elif phase_num == 2:
+    elif phase_num == "2":
         remote_ac(True, 20) 
         return jsonify(
             success=True,
@@ -99,7 +112,7 @@ def api_phase():
         )
 
     # Walk to gather branches
-    elif phase_num == 3:
+    elif phase_num == "3":
         if (treadmill == "start"):
             countdown(5, "Starting Treadmill..")
             remote_treadmill(treadmill) 
@@ -119,7 +132,7 @@ def api_phase():
 
 
     # Cutscene Ujung Stage 2
-    elif phase_num == 4:
+    elif phase_num == "4":
         remote_ac(False, 20) 
         return jsonify(
             success=True,
@@ -129,7 +142,7 @@ def api_phase():
         )
 
     # Jalan ke Api unggun
-    elif phase_num == 5:
+    elif phase_num == "5":
         if (treadmill == "start"):
             countdown(5, "Starting Treadmill..")
             remote_treadmill(treadmill) 
@@ -149,7 +162,7 @@ def api_phase():
 
 
     # Jalan ke Api unggun 2
-    elif phase_num == 6:
+    elif phase_num == "6":
         remote_ac(False, 28) 
         return jsonify(
             success=True,
@@ -159,7 +172,7 @@ def api_phase():
         )
 
     # Reset state
-    elif phase_num == 7:
+    elif phase_num == "7":
         reset_state()
         return jsonify(
             success=True,
