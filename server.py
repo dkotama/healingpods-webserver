@@ -8,6 +8,7 @@ import asyncio
 import yaml
 import requests
 from datetime import date
+from time import strftime
 
 app = Flask(__name__)
 
@@ -33,10 +34,14 @@ app = Flask(__name__)
 
 ac_default = 28
 ac_current = ac_default
+is_diffuser_on = False
+is_greefan_on = False
 
 
 def initial_state():
     print("Initial State...")
+
+    # initial state AC OFF
     requests.get(ESP_SERVER + "kipasac1")
     requests.get(ESP_SERVER + "suhu26")
 
@@ -49,29 +54,51 @@ def remote_ac(is_fan_on, degree):
     global ac_current
 
     if (is_fan_on):
-        requests.get(ESP_SERVER + "kipas5")
+        requests.get(ESP_SERVER + "kipasac5")
     else:
-        requests.get(ESP_SERVER + "kipas1")
+        requests.get(ESP_SERVER + "kipasac1")
 
     if (degree is not ac_current):
         ac_current = degree 
-        requests.get(ESP_SERVER + "suhu" + degree)
+        requests.get(ESP_SERVER + "suhu" + str(degree))
         print("Turning AC to " + str(degree))
 
-def remote_diffuser():
-    #trigger on
-    requests.get(ESP_SERVER + "difonoff")
+def toggle_fan_gree():
+    global is_greefan_on 
+
+    if (is_greefan_on):
+        is_greefan_on = False 
+        requests.get(ESP_SERVER + "kipasonoff") 
+        print("Greefan Status : OFF")
+    else:
+        is_greefan_on = True
+        requests.get(ESP_SERVER + "kipasonoff")
+        print("Greefan Status : ON")
+
+
+def toggle_diffuser():
+    global is_diffuser_on
+
+    requests.get(ESP_SERVER + "difonoff") 
+
+    if (is_diffuser_on):
+        is_diffuser_on = False
+        print("Diffuser Status : OFF")
+    else:
+        is_diffuser_on = True
+        print("Diffuser Status : ON")
+         
  
 
 async def remote_treadmill(treadmill_status): 
-    if (treadmill_status == "" or treadmill_status == "stop") :
+    if (treadmill_status == "stop") :
         # await finish_walk() 
         await setSpeedManual(0)
         print("Treadmill turn OFF ... ")
     elif (treadmill_status == "start") :
         # await setSpeed(5)
         await start_walk() 
-        # print("Treadmill turn ON ... ")
+        print("Treadmill turned ON ... ")
     else :
         print("Unrecognized Trigger , Treadmill turn OFF ... ")
 
@@ -92,6 +119,19 @@ def countdown(t, title=None):
         print('Finish')
 
 
+# Logging
+
+@app.after_request
+def after_request(response):
+    timestamp = strftime('[%Y-%b-%d %H:%M]')
+    print(timestamp, request.remote_addr, request.method, request.scheme, request.full_path, response.status)
+    return response
+
+
+# Routing
+
+
+
 @app.route('/', methods=['GET'])
 def get_connected():
     return jsonify(
@@ -100,37 +140,56 @@ def get_connected():
 
 @app.route('/api/phase', methods=['GET'])
 async def api_phase():
+    phase_num = ""
     args = request.args
-    phase_num = args.get("num", default=0, type=int)
+    temp_phase_num = args.get("num", default="", type=str)
     treadmill = args.get("tm", default="", type=str)
     turn = args.get("turn", default="", type=str)
     
-    if phase_num < 1:
-        print("Undefined phase " + str(phase_num))
-        return "Undefined phase. Must be higher than 1"
+    if len(temp_phase_num) > 1 :
+        print("Phase not num detected" + str(phase_num))
+        arr_num = list(temp_phase_num)
+        phase_num = arr_num[-1]
+    else :
+        phase_num = temp_phase_num
 
     print("... Initiating Phase " + str(phase_num))
 
+
+    # Treadmill Command
+    if (treadmill == "start"):
+        await remote_treadmill(treadmill) 
+        print("Waiting walking stop ..")
+    elif(treadmill == "stop"):
+        await remote_treadmill(treadmill)
+    elif(treadmill != ""):
+        print("Unrecognized Treadmill Commands..")
+
+    # Turn Command 
+    if (turn == "left"):
+        print("Turning Left")
+    elif(turn == "right"):
+        print("Turning Right")
+
+    if phase_num == 0:
+        return jsonify(
+            success=True,
+            phase=0,
+            next_phase=0,
+            session_code="0000 ERR"
+            )
+
     # Gather Apples
-    if phase_num == 1:
+    elif phase_num == "1":
         if (treadmill == "" and turn==""):
             initial_state()
         
-        if (treadmill == "start"):
-            # countdown(2, "Starting Treadmill..")
-            await remote_treadmill(treadmill) 
-            print("Waiting walking stop ..")
-        elif(treadmill == "stop"):
-            countdown(5, "Stopping Treadmill..")
-            remote_treadmill(treadmill)
-        elif(treadmill != ""):
-            print("Unrecognized Treadmill Commands..")
-
-        if (turn == "left"):
-            print("Turning Left")
-        elif(turn == "right"):
-            print("Turning Right")
-
+        # if (treadmill == "start"):
+        #     await remote_treadmill(treadmill) 
+        # elif(treadmill == "stop"):
+        #     await remote_treadmill(treadmill)
+        # elif(treadmill != ""):
+        #     print("Unrecognized Treadmill Commands..")
 
         return jsonify(
             success=True,
@@ -140,8 +199,15 @@ async def api_phase():
             )
 
     # Apple Falls
-    elif phase_num == 2:
+    elif phase_num == "2":
         remote_ac(True, 20) 
+        toggle_fan_gree() # ON
+
+
+        # diffuser
+        # toggle_diffuser()
+        # countdown(2, "Waiting Diffuser OFF..")
+        # toggle_diffuser()
 
         return jsonify(
             success=True,
@@ -151,16 +217,14 @@ async def api_phase():
         )
 
     # Walk to gather branches
-    elif phase_num == 3:
-        if (treadmill == "start"):
-            # countdown(5, "Starting Treadmill..")
-            await remote_treadmill(treadmill) 
-            print("Waiting walking stop ..")
-        elif(treadmill == "stop"):
-            countdown(5, "Stopping Treadmill..")
-            remote_treadmill(treadmill)
-        elif(treadmill != ""):
-            print("Unrecognized Treadmill Commands..")
+    elif phase_num == "3":
+        #Toggle Gree Off
+        toggle_fan_gree()
+
+        # diffuser
+        toggle_diffuser()
+        countdown(3, "Waiting Diffuser OFF..")
+        toggle_diffuser()
 
         return jsonify(
             success=True,
@@ -171,8 +235,9 @@ async def api_phase():
 
 
     # Cutscene Ujung Stage 2
-    elif phase_num == 4:
-        remote_ac(False, 20) 
+    elif phase_num == "4":
+        remote_ac(False, 22) 
+
         return jsonify(
             success=True,
             phase=4,
@@ -181,16 +246,8 @@ async def api_phase():
         )
 
     # Jalan ke Api unggun
-    elif phase_num == 5:
-        if (treadmill == "start"):
-            # countdown(5, "Starting Treadmill..")
-            await remote_treadmill(treadmill) 
-            print("Waiting walking stop ..")
-        elif(treadmill == "stop"):
-            countdown(5, "Stopping Treadmill..")
-            remote_treadmill(treadmill)
-        elif(treadmill != ""):
-            print("Unrecognized Treadmill Commands..")
+    elif phase_num == "5":
+        remote_ac(False, 26) 
             
         return jsonify(
             success=True,
@@ -201,8 +258,9 @@ async def api_phase():
 
 
     # Jalan ke Api unggun 2
-    elif phase_num == 6:
+    elif phase_num == "6":
         remote_ac(False, 26) 
+
         return jsonify(
             success=True,
             phase=6,
@@ -211,20 +269,14 @@ async def api_phase():
         )
 
     # Reset state
-    elif phase_num == 7:
+    elif phase_num == "7":
         reset_state()
+
         return jsonify(
             success=True,
             phase=7,
             next_phase=None,
             session_code="00001"
-        )
-    else:
-        return jsonify(
-            success=False,
-            phase=None,
-            next_phase=None,
-            session_code=None
         )
 
 def on_new_status(sender, record):
