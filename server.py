@@ -1,6 +1,7 @@
 import time
 import logging 
 from flask import Flask, request, jsonify
+from flask_cors import CORS, cross_origin
 from ph4_walkingpad import pad
 from ph4_walkingpad.pad import WalkingPad, Controller
 from ph4_walkingpad.utils import setup_logging
@@ -11,10 +12,13 @@ from datetime import date
 from time import strftime
 
 app = Flask(__name__)
+CORS(app)
+
+app.config['CORS_HEADERS'] = 'Content-Type'
 
 # minimal_cmd_space does not exist in the version we use from pip, thus we define it here.
 # This should be removed once we can take it from the controller
-minimal_cmd_space = 0.69
+minimal_cmd_space = 0.1
 
 log = setup_logging()
 pad.logger = log
@@ -27,11 +31,12 @@ last_status = {
 }
 
 ESP_SERVER = "http://192.168.0.106/"
+PIRINGAN_SERVER = "http://192.168.0.100/"
 
 app = Flask(__name__)
 # log = logging.getLogger('werkzeug')
 # log.setLevel(logging.ERROR)
-
+diffuser_min_time = 5
 ac_default = 28
 ac_current = ac_default
 is_diffuser_on = False
@@ -42,13 +47,16 @@ def initial_state():
     print("Initial State...")
 
     # initial state AC OFF
-    requests.get(ESP_SERVER + "kipasac1")
-    requests.get(ESP_SERVER + "suhu26")
+    requests.get(ESP_SERVER + "acon")
+    requests.get(ESP_SERVER + "kipasac2")
+    requests.get(ESP_SERVER + "suhu18")
 
 
 def reset_state():
     print("RESETTING STATE THANK YOU")
 
+def remote_ac_off():
+    requests.get(ESP_SERVER + "acoff")
 
 def remote_ac(is_fan_on, degree):
     global ac_current
@@ -88,12 +96,25 @@ def toggle_diffuser():
         is_diffuser_on = True
         print("Diffuser Status : ON")
          
+# def toggling_diffuser():
+#     global diffuser_min_time
+
+#     print("Toggling Diffuser..")
+
+#     requests.get(ESP_SERVER + "difonoff") 
+#     # time.sleep(diffuser_min_time)
+#     for _ in range(diffuser_min_time):
+#         time.sleep(1)
+#         print(".")
+#     requests.get(ESP_SERVER + "difonoff") 
+
+#     print("Toggling End..")
  
 
 async def remote_treadmill(treadmill_status): 
     if (treadmill_status == "stop") :
-        # await finish_walk() 
-        await setSpeedManual(0)
+        await finish_walk() 
+        # await setSpeedManual(0)
         print("Treadmill turn OFF ... ")
     elif (treadmill_status == "start") :
         # await setSpeed(5)
@@ -129,6 +150,34 @@ def after_request(response):
 
 
 # Routing
+# @app.route('/right45', methods=['GET'])
+# def turnright45():
+#     requests.get(PIRINGAN_SERVER + "lefton")
+#     # countdown(2, "Waiting turn..")
+#     # 80
+#     # time.sleep(1.6)
+#     # 60
+#     time.sleep(1.4)
+#     requests.get(PIRINGAN_SERVER + "leftoff")
+
+#     return jsonify(
+#         status=True
+#         )
+
+# Routing
+# @app.route('/left45', methods=['GET'])
+# def turnleft45():
+#     requests.get(PIRINGAN_SERVER + "righton")
+#     # countdown(2, "Waiting turn..")
+#     # 80
+#     # time.sleep(1.6)
+#     # 60
+#     time.sleep(1.4)
+#     requests.get(PIRINGAN_SERVER + "rightoff")
+
+#     return jsonify(
+#         status=True
+#         )
 
 
 
@@ -139,6 +188,7 @@ def get_connected():
         )
 
 @app.route('/api/phase', methods=['GET'])
+# @cross_origin()
 async def api_phase():
     phase_num = ""
     args = request.args
@@ -200,8 +250,9 @@ async def api_phase():
 
     # Apple Falls
     elif phase_num == "2":
-        remote_ac(True, 20) 
-        toggle_fan_gree() # ON
+        remote_ac(True, 26) 
+        # Toggle Fan GREE ON
+        toggle_fan_gree()
 
 
         # diffuser
@@ -218,13 +269,17 @@ async def api_phase():
 
     # Walk to gather branches
     elif phase_num == "3":
-        #Toggle Gree Off
-        toggle_fan_gree()
+        if (treadmill == "" and turn==""):
+            #Toggle Gree Off
+            toggle_fan_gree()
+            
+            #Toggle Diffuser ON
+            toggle_diffuser()
 
-        # diffuser
-        toggle_diffuser()
-        countdown(3, "Waiting Diffuser OFF..")
-        toggle_diffuser()
+
+        # countdown(5, "Waiting Diffuser...")
+        # toggle_diffuser()
+
 
         return jsonify(
             success=True,
@@ -236,7 +291,11 @@ async def api_phase():
 
     # Cutscene Ujung Stage 2
     elif phase_num == "4":
-        remote_ac(False, 22) 
+        if (treadmill == "" and turn==""):
+            #Toggle Diffuser OFF
+            toggle_diffuser()
+
+            remote_ac(False, 18) 
 
         return jsonify(
             success=True,
@@ -247,7 +306,9 @@ async def api_phase():
 
     # Jalan ke Api unggun
     elif phase_num == "5":
-        remote_ac(False, 26) 
+        if (treadmill == "" and turn==""):
+            remote_ac(False, 18) 
+        # await start_walk() 
             
         return jsonify(
             success=True,
@@ -259,7 +320,7 @@ async def api_phase():
 
     # Jalan ke Api unggun 2
     elif phase_num == "6":
-        remote_ac(False, 26) 
+        remote_ac_off() 
 
         return jsonify(
             success=True,

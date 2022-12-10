@@ -38,9 +38,12 @@
     },
  };
 
+ var i = 0;
+ var MAX_BARS = 20;
 
  function update_values() {
-    $.getJSON('/api/heartrate/_rand',
+    // console.log('test');
+    $.getJSON('/api/heartrate/latest',
 
         function(data) {
             $('#result').text(data.result);
@@ -49,50 +52,59 @@
         }
     );
 
-    c++;
-    console.log(c);
-    console.log(temp);
+    // c++;
+    // console.log(c);
+    // console.log(temp);
     
-    heartChart.data.datasets.forEach((dataset) => {
-        dataset.data.push(temp);
-    })
+    // heartChart.data.datasets.forEach((dataset) => {
+    //     console.log(dataset);
+    //     dataset.data.push(temp);
+    // })
+
+    // console.log(heartChart.data);
+
+
+    // for (var key in response) {
+
+    // if (data.labels.length > MAX_BARS) {
+    //     data.labels.shift();
+    //     data.datasets[0].data.shift();
+    // }
+
+    data.labels[i] = i;
+    data.datasets[0].data[i] = temp;
+    i++;
+    
+    // }
 
     heartChart.update()
  }
 
-var heartrate = document.getElementById('heartrate').getContext('2d');
-
-const myChart = new Chart(ctx, {
-    type: 'bar',
-    data: {
-        labels: ['Red', 'Blue', 'Yellow', 'Green', 'Purple', 'Orange'],
-        datasets: [{
-            label: '# of Votes',
-            data: [12, 19, 3, 5, 2, 3],
-            backgroundColor: [
-                'rgba(255, 99, 132, 0.2)',
-                'rgba(54, 162, 235, 0.2)',
-                'rgba(255, 206, 86, 0.2)',
-                'rgba(75, 192, 192, 0.2)',
-                'rgba(153, 102, 255, 0.2)',
-                'rgba(255, 159, 64, 0.2)'
-            ],
-            borderColor: [
-                'rgba(255, 99, 132, 1)',
-                'rgba(54, 162, 235, 1)',
-                'rgba(255, 206, 86, 1)',
-                'rgba(75, 192, 192, 1)',
-                'rgba(153, 102, 255, 1)',
-                'rgba(255, 159, 64, 1)'
-            ],
-            borderWidth: 1
-        }]
-    },
-    options: {
-        scales: {
-            y: {
-                beginAtZero: true
-            }
+// Chart Data
+var data = {
+   labels: [],
+   datasets: [
+        {
+            label: [],
+            data: [],
         }
+    ]
+};
+
+var heartrate = document.getElementById('heartrate').getContext('2d');
+var heartChart = new Chart(heartrate,{
+    type: 'bar',
+    data: data,
+    // options: {
+    //      scales: {
+    //         x: {
+    //             type: 'linear',
+    //             min: 0,
+    //             max: MAX_BARS 
+    //         }
+    //     }
+    // },
+    animation:{ 
+       animateScale:true
     }
-});
+ });

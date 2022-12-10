@@ -1,0 +1,239 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css">
+
+    <title>Register Akun</title>
+  </head>
+  <body>
+
+    <div class="container" style="margin-top: 50px">
+      <div class="row">
+        <div class="col-md-6">
+            <button id="btn-left" type="button" class="btn btn-primary btn-block mt-2">Kiri 45</button>
+        </div>
+        <div class="col-md-6">
+            <button id="btn-right" type="button" class="btn btn-primary btn-block mt-2">Kanan 45</button>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-md-12">
+            <button id="btn-start" type="button" class="btn btn-success btn-block mt-2">Start TM</button>
+        </div>
+
+        <div class="col-md-12">
+            <button id="btn-stop" type="button" class="btn btn-danger btn-block mt-2">Stop TM</button>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-md-12">
+            <button id="btn-acon" type="button" class="btn btn-success btn-block mt-2">AC ON</button>
+        </div>
+
+        <div class="col-md-12">
+            <button id="btn-acoff" type="button" class="btn btn-danger btn-block mt-2">AC OFF</button>
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js" ></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/limonte-sweetalert2/8.11.8/sweetalert2.all.min.js"></script>
+
+    <script>
+
+      function callPiringan(direction) {
+            //ajax
+            $.ajax({
+
+              url: `http://192.168.0.101:8084/${direction}45`,
+              type: "GET",
+              data: {},
+
+              success:function(response){
+
+                // if (response.age == age) {
+
+                  Swal.fire({
+                    type: 'success',
+                    title: `Turn ${direction} Success`,
+                    text: ''
+                  });
+
+                //   $("#nama_lengkap").val('');
+                //   $("#username").val('');
+                //   $("#password").val('');
+
+                // } else {
+
+                //   Swal.fire({
+                //     type: 'error',
+                //     title: 'Register Gagal!',
+                //   });
+
+                // }
+
+                // console.log(response);
+
+              },
+
+              error:function(response){
+                  // Swal.fire({
+                  //   type: 'error',
+                  //   title: 'Opps!',
+                  //   text: 'server error!'
+                  // });
+                  Swal.fire({
+                    type: 'success',
+                    title: `Turn ${direction} Success`,
+                    text: ''
+                  });
+              }
+
+            })
+      }
+
+      function callTM(direction) {
+            //ajax
+            $.ajax({
+
+              url: `http://192.168.0.101:8081/api/phase?num=1&tm=${direction}`,
+              type: "GET",
+              crossDomain: true,
+
+              success:function(response){
+
+                // if (response.age == age) {
+
+                  Swal.fire({
+                    type: 'success',
+                    title: `Turn ${direction} Success`,
+                    text: ''
+                  });
+
+              },
+
+              error:function(response){
+                  Swal.fire({
+                    type: 'error',
+                    title: 'Opps!',
+                    text: 'server error!'
+                  });
+              }
+
+            })
+      }
+
+      function callAC(direction) {
+            //ajax
+            $.ajax({
+
+              url: `http://192.168.0.106/ac${direction}`,
+              type: "GET",
+
+              success:function(response){
+
+                // if (response.age == age) {
+
+                  Swal.fire({
+                    type: 'success',
+                    title: `AC ${direction} Success`,
+                    text: ''
+                  });
+
+              },
+
+              error:function(response){
+                  Swal.fire({
+                    type: 'error',
+                    title: 'Opps!',
+                    text: 'server error!'
+                  });
+              }
+
+            })
+      }
+
+      
+      // http://127.0.0.1:8081/api/phase?num=1&tm=start
+
+      $(document).ready(function() {
+        
+        $("#btn-left").click(function() {
+            console.log("left");
+            callPiringan("left")
+        })
+
+        $("#btn-right").click(function() {
+            console.log("right");
+            callPiringan("right")
+        })
+
+
+        $("#btn-start").click(function() {
+            console.log("start");
+            callTM("start")
+        })
+
+        $("#btn-stop").click(function() {
+            console.log("stop");
+            callTM("stop")
+        })
+
+        $("#btn-acon").click(function() {
+            console.log("on");
+            callAC("on")
+        })
+
+        $("#btn-acoff").click(function() {
+            console.log("stop");
+            callAC("off")
+        })
+        
+        
+        // $(".btn-register").click( function() {
+        
+        //   var name = $("#name").val();
+        //   var phone = $("#phone").val();
+        //   var age = $("#age").val();
+
+        //   if (name.length == "") {
+
+        //     Swal.fire({
+        //       type: 'warning',
+        //       title: 'Oops...',
+        //       text: 'Nama Lengkap Wajib Diisi !'
+        //     });
+
+        //   } else if(phone.length == "") {
+
+        //     Swal.fire({
+        //       type: 'warning',
+        //       title: 'Oops...',
+        //       text: 'Telepon Wajib Diisi!'
+        //     });
+
+        //   } else if(age.length == "") {
+
+        //     Swal.fire({
+        //       type: 'warning',
+        //       title: 'Oops...',
+        //       text: 'Umur wajib diisi'
+        //     });
+
+        //   } else {
+
+
+        //   }
+
+        // }); 
+
+      });
+    </script>
+
+  </body>
+</html>

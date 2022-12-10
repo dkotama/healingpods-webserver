@@ -41,7 +41,7 @@
 
 
  function update_values() {
-    $.getJSON('/api/heartrate/_rand',
+    $.getJSON('/api/heartrate/latest',
 
         function(data) {
             $('#result').text(data.result);
